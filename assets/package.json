@@ -1,0 +1,14 @@
+{
+  "devDependencies": {
+    "autoprefixer": "^10.3.6",
+    "postcss": "^8.3.8",
+    "postcss-import": "^14.0.2",
+    "tailwindcss": "^2.2.16"
+  },
+  "scripts": {
+    "deploy": "NODE_ENV=production tailwindcss --postcss --minify -i css/app.css -o ../priv/static/assets/app.css"
+  },
+  "dependencies": {
+    "clipboard": "^2.0.8"
+  }
+}
