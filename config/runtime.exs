@@ -40,6 +40,8 @@ if config_env() == :prod do
   # Then you can assemble a release by calling `mix release`.
   # See `mix help release` for more information.
 
+  config :card, CardWeb.Endpoint, server: true
+
   # ## Configuring the mailer
   #
   # In production you need to configure the mailer to use a different adapter.
