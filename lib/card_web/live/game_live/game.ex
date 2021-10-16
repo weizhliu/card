@@ -103,7 +103,7 @@ defmodule CardWeb.GameLive.Game do
             <.lose_message />
           <% end %>
           <%= live_component CardWeb.ReadyComponent,
-            player: @current_player, id: :ready, room: @new_room, title: "Another round?" %>
+            player: @current_player, id: :ready, room: @new_room, title: "Another round" %>
           <.back_to_menu />
         </.game_over_modal>
       <% end %>
@@ -117,7 +117,7 @@ defmodule CardWeb.GameLive.Game do
       <div class="bg-green-300 w-4 h-4 rounded-xl transform skew-x-12 -rotate-8 translate-x-3"></div>
       <h2 class="block transform text-xl mr-2">+</h2>
       <div class="bg-blue-300 w-28 h-2 rounded-xl transform -skew-x-12 rotate-3 -ml-28 translate-x-28"></div>
-      <h2 class="block transform">Reopen result menu</h2>
+      <h2 class="block transform font-serif font-lg text-black">Reopen result menu</h2>
     </div>
     """
   end
@@ -246,8 +246,8 @@ defmodule CardWeb.GameLive.Game do
     ~H"""
     <div class="flex flex-col justify-center">
       <%= link to: "/" do %>
-        <div class="bg-green-300 -mt-4 w-24 h-6 rounded-xl transform -skew-x-12 rotate-6 translate-y-8 translate-x-16"></div>
-        <h2 class="block transform text-xl font-serif">Back to Start Menu</h2>
+        <div class="bg-gray-300 -mt-4 w-24 h-6 rounded-xl transform -skew-x-12 rotate-6 translate-y-8 translate-x-16"></div>
+        <h2 class="block transform text-lg font-serif">Back to Start Menu</h2>
       <% end %>
     </div>
     """
