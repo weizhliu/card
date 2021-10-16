@@ -9,6 +9,12 @@ defmodule Card.Room do
     Phoenix.PubSub.broadcast(Card.PubSub, "invite" <> id, room)
   end
 
+  def new(attrs \\ %{}) do
+    room = struct(Card.Room, Enum.into(attrs, %{id: random_id()}))
+    :ets.insert_new(:rooms, {room.id, room})
+    room
+  end
+
   def get(id) do
     case :ets.lookup(:rooms, id) do
       [{_, room}] -> room
@@ -20,4 +26,6 @@ defmodule Card.Room do
     :ets.insert(:rooms, {id, room})
     broadcast(room.id, room)
   end
+
+  defp random_id(), do: :crypto.strong_rand_bytes(9) |> Base.url_encode64()
 end

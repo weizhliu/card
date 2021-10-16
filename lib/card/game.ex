@@ -6,7 +6,8 @@ defmodule Card.Game do
             turn: 1,
             round: 1,
             status: :start,
-            id: nil
+            id: nil,
+            new_room: nil
 
   use GenServer
 
@@ -178,7 +179,7 @@ defmodule Card.Game do
   # Client
 
   def start(id) do
-    GenServer.start_link(__MODULE__, %__MODULE__{id: id})
+    GenServer.start_link(__MODULE__, %__MODULE__{id: id, new_room: Card.Room.new()})
   end
 
   def status(pid) do

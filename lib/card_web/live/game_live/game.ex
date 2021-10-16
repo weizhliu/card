@@ -1,7 +1,7 @@
 defmodule CardWeb.GameLive.Game do
   use CardWeb, :live_view
   import CardWeb.Component
-  alias Card.Game
+  alias Card.{Game, Room}
 
   def mount(
         %{"id" => id} = _params,
@@ -9,10 +9,10 @@ defmodule CardWeb.GameLive.Game do
         %{assigns: %{live_action: current_player}} = socket
       ) do
     [opponent] = [:host, :guest] -- [current_player]
-    if connected?(socket), do: Card.Game.subscribe(id)
-
     pid = Card.Dealer.find_or_create_game(id)
     game = Game.status(pid)
+    if connected?(socket), do: Card.Game.subscribe(id)
+    if connected?(socket), do: Card.Room.subscribe(game.new_room.id)
 
     {:ok,
      assign(socket, %{
@@ -21,7 +21,8 @@ defmodule CardWeb.GameLive.Game do
        game: maybe_fold_last(game, current_player, opponent),
        current_player: current_player,
        opponent: opponent,
-       modal_on: true
+       modal_on: true,
+       new_room: game.new_room
      })}
   end
 
@@ -48,6 +49,10 @@ defmodule CardWeb.GameLive.Game do
     {:noreply, assign(socket, :modal_on, false)}
   end
 
+  def handle_event("open_modal", _params, socket) do
+    {:noreply, assign(socket, :modal_on, true)}
+  end
+
   def handle_event(
         "play_card",
         %{"card" => card},
@@ -61,11 +66,22 @@ defmodule CardWeb.GameLive.Game do
   defp transform_card("reverse"), do: :reverse
   defp transform_card(number), do: String.to_integer(number)
 
-  def handle_info(game, socket) do
+  def handle_info(%Game{} = game, socket) do
     %{assigns: %{current_player: current_player, opponent: opponent}} = socket
 
+    {:noreply, assign(socket, %{game: maybe_fold_last(game, current_player, opponent)})}
+  end
+
+  def handle_info(
+        %Room{host_ready: true, guest_ready: true, id: new_room_id},
+        %{assigns: %{current_player: current_player}} = socket
+      ) do
     {:noreply,
-     assign(socket, %{game: maybe_fold_last(game, current_player, opponent)})}
+     push_redirect(socket, to: Routes.game_game_path(socket, current_player, new_room_id))}
+  end
+
+  def handle_info(%Room{} = new_room, socket) do
+    {:noreply, assign(socket, new_room: new_room)}
   end
 
   def render(assigns) do
@@ -77,7 +93,7 @@ defmodule CardWeb.GameLive.Game do
         <.desk player={Map.get(@game, @opponent)}/>
         <.desk player={Map.get(@game, @current_player)}/>
       </div>
-      <.notice game={@game}/>
+      <.notice game={@game} modal_on={@modal_on}/>
       <.hand player={Map.get(@game, @current_player)}/>
       <%= if (@game.status != :start) && @modal_on do %>
         <.game_over_modal>
@@ -86,6 +102,8 @@ defmodule CardWeb.GameLive.Game do
           <% else %>
             <.lose_message />
           <% end %>
+          <%= live_component CardWeb.ReadyComponent,
+            player: @current_player, id: :ready, room: @new_room, title: "Another round?" %>
           <.back_to_menu />
         </.game_over_modal>
       <% end %>
@@ -93,13 +111,30 @@ defmodule CardWeb.GameLive.Game do
     """
   end
 
-  def notice(%{game: %{round: 1, turn: 1}} = assigns) do
+  def notice(%{modal_on: false} = assigns) do
     ~H"""
-    <div class="mt-4 h-4 text-gray-600">👇 Pick a card</div>
+    <div phx-click="open_modal" class="flex items-center mt-4 h-4 text-gray-600 cursor-pointer">
+      <div class="bg-green-300 w-4 h-4 rounded-xl transform skew-x-12 -rotate-8 translate-x-3"></div>
+      <h2 class="block transform text-xl mr-2">+</h2>
+      <div class="bg-blue-300 w-28 h-2 rounded-xl transform -skew-x-12 rotate-3 -ml-28 translate-x-28"></div>
+      <h2 class="block transform">Reopen result menu</h2>
+    </div>
     """
   end
 
-  def notice(assigns) do 
+  def notice(%{game: %{round: 1, turn: 1}} = assigns) do
+    ~H"""
+    <div class="mt-4 h-4 text-gray-600">👇 Pick a card to start</div>
+    """
+  end
+
+  def notice(%{game: %{turn: 1}} = assigns) do
+    ~H"""
+    <div class="mt-4 h-4 text-gray-600">👇 Pick a card to start new round</div>
+    """
+  end
+
+  def notice(assigns) do
     ~H"""
     <div class="mt-4 h-4"></div>
     """
@@ -180,7 +215,7 @@ defmodule CardWeb.GameLive.Game do
   def game_over_modal(assigns) do
     ~H"""
     <div phx-capture-click="close_model" class="fixed w-full h-screen flex bg-black bg-opacity-20 justify-center items-center">
-      <div class="flex flex-col p-4 bg-gray-50 shadow-lg text-center border w-60 h-70 rounded-xl">
+      <div class="flex flex-col p-4 bg-gray-50 shadow-lg text-center border h-70 rounded-xl">
         <div class="flex">
           <button phx-click="close_model" class="-mt-6">
             <div class="bg-red-300 w-4 h-4 rounded-xl transform skew-x-12 -rotate-6 translate-y-6"></div>
@@ -209,9 +244,9 @@ defmodule CardWeb.GameLive.Game do
 
   def back_to_menu(assigns) do
     ~H"""
-    <div class="flex flex-col mt-8 justify-center">
+    <div class="flex flex-col justify-center">
       <%= link to: "/" do %>
-        <div class="bg-green-300 w-24 h-6 rounded-xl transform -skew-x-12 rotate-6 translate-y-8 translate-x-16"></div>
+        <div class="bg-green-300 -mt-4 w-24 h-6 rounded-xl transform -skew-x-12 rotate-6 translate-y-8 translate-x-16"></div>
         <h2 class="block transform text-xl font-serif">Back to Start Menu</h2>
       <% end %>
     </div>

@@ -21,11 +21,8 @@ defmodule CardWeb.PageLive.Index do
   end
 
   def handle_event("start_game", _params, socket) do
-    room_id = random_room_id()
-    :ets.insert_new(:rooms, {room_id, %Card.Room{id: room_id}})
+    room = Card.Room.new()
 
-    {:noreply, push_redirect(socket, to: Routes.game_invite_path(socket, :host, room_id))}
+    {:noreply, push_redirect(socket, to: Routes.game_invite_path(socket, :host, room.id))}
   end
-
-  defp random_room_id(), do: String.trim(to_string(:rand.uniform()), "0.")
 end
