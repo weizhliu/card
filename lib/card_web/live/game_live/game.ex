@@ -80,7 +80,14 @@ defmodule CardWeb.GameLive.Game do
       <.notice game={@game}/>
       <.hand player={Map.get(@game, @current_player)}/>
       <%= if (@game.status != :start) && @modal_on do %>
-        <.game_over_modal win={@game.status == :"#{@current_player}_win"}/>
+        <.game_over_modal>
+          <%= if @game.status == :"#{@current_player}_win" do %>
+            <.win_message />
+          <% else %>
+            <.lose_message />
+          <% end %>
+          <.back_to_menu />
+        </.game_over_modal>
       <% end %>
     </div>
     """
@@ -180,20 +187,33 @@ defmodule CardWeb.GameLive.Game do
             <h2 class="block transform text-xl">x</h2>
           </button>
         </div>
-        <%= if @win do %>
-          <div class="bg-yellow-300 w-12 h-8 rounded-xl transform skew-x-12 -rotate-12 translate-x-12 translate-y-12"></div>
-          <h2 class="transform text-3xl font-serif mb-4">You Win</h2>
-        <% else %>
-          <div class="bg-gray-300 w-8 h-8 rounded-xl transform skew-x-12 -rotate-12 translate-x-12 translate-y-12"></div>
-          <h2 class="transform text-3xl font-serif mb-4">You Lose</h2>
-        <% end %>
-        <div class="flex flex-col mt-8 justify-center">
-          <%= link to: "/" do %>
-            <div class="bg-green-300 w-24 h-6 rounded-xl transform -skew-x-12 rotate-6 translate-y-8 translate-x-16"></div>
-            <h2 class="block transform text-xl font-serif">Back to Start Menu</h2>
-          <% end %>
-        </div>
+        <%= render_block(@inner_block) %>
       </div>
+    </div>
+    """
+  end
+
+  def win_message(assigns) do
+    ~H"""
+    <div class="bg-yellow-300 w-12 h-8 rounded-xl transform skew-x-12 -rotate-12 translate-x-12 translate-y-12"></div>
+    <h2 class="transform text-3xl font-serif mb-4">You Win</h2>
+    """
+  end
+
+  def lose_message(assigns) do
+    ~H"""
+    <div class="bg-gray-300 w-8 h-8 rounded-xl transform skew-x-12 -rotate-12 translate-x-12 translate-y-12"></div>
+    <h2 class="transform text-3xl font-serif mb-4">You Lose</h2>
+    """
+  end
+
+  def back_to_menu(assigns) do
+    ~H"""
+    <div class="flex flex-col mt-8 justify-center">
+      <%= link to: "/" do %>
+        <div class="bg-green-300 w-24 h-6 rounded-xl transform -skew-x-12 rotate-6 translate-y-8 translate-x-16"></div>
+        <h2 class="block transform text-xl font-serif">Back to Start Menu</h2>
+      <% end %>
     </div>
     """
   end
