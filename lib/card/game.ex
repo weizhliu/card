@@ -125,9 +125,8 @@ defmodule Card.Game do
   defp add_wins(game), do: game
 
   defp host_win_this_round?(%{round: round, host: host, guest: guest}) do
-    range = round_range(round)
-    host_desk = Enum.slice(host.desk, range)
-    guest_desk = Enum.slice(guest.desk, range)
+    host_desk = Enum.slice(host.desk, (round - 1) * 3, 3)
+    guest_desk = Enum.slice(guest.desk, (round - 1) * 3, 3)
     host_win = get_score(host_desk) > get_score(guest_desk)
 
     if reverse?(host_desk ++ guest_desk) do
@@ -135,13 +134,6 @@ defmodule Card.Game do
     else
       host_win
     end
-  end
-
-  defp round_range(round) do
-    round
-    |> Kernel.-(1)
-    |> Kernel.*(3)
-    |> then(&(&1..(&1 + 2)))
   end
 
   defp reverse?(desk) do
