@@ -16,12 +16,12 @@ defmodule CardWeb.ReadyComponent do
         <.ready_status player={is_you("Guest", @player)} ready={@room.guest_ready}/>
       </div>
       <%= unless Map.get(@room, :"#{@player}_ready") do %>
-        <div class="flex justify-between w-40 mx-auto mt-8">
+        <div class="flex justify-between w-44 mx-auto mt-8">
           <div class="text-lg text-center">Are you ready?</div>
-          <div class="h-8">
-            <div class="bg-green-300 w-8 h-8 rounded-xl transform skew-x-12 -rotate-45 translate-x-2"></div>
-            <button phx-click="ready" phx-target={@myself} class="transform -translate-y-7 text-xl">Yes</button>
-          </div>
+          <button phx-click="ready" phx-target={@myself} class="ml-2 h-8 group">
+            <div class="border-2 border-white group-hover:border-green-300 bg-green-300 w-10 h-12 rounded-xl transform skew-x-12 -rotate-45 translate-x-1 translate-y-2"></div>
+            <div class="transform -translate-y-7 text-xl group-hover:underline">Yes!</div>
+          </button>
         </div>
       <% end %>
     </div>
