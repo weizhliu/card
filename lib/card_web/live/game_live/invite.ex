@@ -58,15 +58,17 @@ defmodule CardWeb.GameLive.Invite do
   def invite(assigns) do
     ~H"""
     <div class="flex flex-col p-4 bg-gray-50 shadow-lg text-center mt-12">
-      <div class="bg-blue-300 w-40 h-8 rounded-xl transform skew-x-12 rotate-6 translate-y-6 translate-x-40"></div>
-      <div class="transform">
-        <label for="invite_url" class="text-2xl font-serif">Guest Link</label><br>
-        <input id="invite_url" class="w-96 text-center text-gray-500 bg-gray-50 mt-4" type="text" value={@path} readonly>
+      <div class="bg-blue-300 w-40 h-8 rounded-xl transform skew-x-12 rotate-3 -mt-6 translate-y-7 translate-x-44"></div>
+      <label for="invite_url" class="transform text-2xl font-serif">Guest Link</label><br>
+      <div class="flex border-2 rounded-xl bg-white justify-center items-center">
+        <input id="invite_url" class="w-96 text-center text-gray-500" type="text" value={@path} readonly>
+        <button class="btn flex group -rotate-2" data-clipboard-target="#invite_url">
+          <div class="bg-green-300 w-16 h-8 rounded-xl rounded-l-none transform -skew-x-2 -ml-16 translate-x-16 border-2 border-white group-hover:border-green-300"></div>
+          <div class="transform text-lg w-16 text-center group-hover:underline">
+            Copy
+          </div>
+        </button>
       </div>
-      <div class="bg-blue-300 w-24 h-2 rounded-xl transform -skew-x-12 rotate-2 translate-y-6 translate-x-36"></div>
-      <button class="btn mb-2 transform font-serif text-lg" data-clipboard-target="#invite_url">
-        Copy to Clipboard
-      </button>
       <p class="text-lg text-gray-600">To begin the game, send this link to your component.</p>
     </div>
     """

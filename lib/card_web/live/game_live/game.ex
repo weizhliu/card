@@ -245,9 +245,9 @@ defmodule CardWeb.GameLive.Game do
   def back_to_menu(assigns) do
     ~H"""
     <div class="flex flex-col justify-center">
-      <%= link to: "/" do %>
-        <div class="bg-gray-300 -mt-4 w-24 h-6 rounded-xl transform -skew-x-12 rotate-6 translate-y-8 translate-x-16"></div>
-        <h2 class="block transform text-lg font-serif">Back to Start Menu</h2>
+      <%= link to: "/", class: "group mt-4" do %>
+        <div class="bg-gray-300 border-2 border-white group-hover:border-gray-300 -mt-4 w-24 h-6 rounded-xl transform -skew-x-12 rotate-6 translate-y-8 translate-x-16"></div>
+        <h2 class="block transform text-lg group-hover:underline">Back to Start Menu</h2>
       <% end %>
     </div>
     """
