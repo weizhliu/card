@@ -102,8 +102,12 @@ defmodule CardWeb.GameLive.Game do
           <% else %>
             <.lose_message />
           <% end %>
-          <%= live_component CardWeb.ReadyComponent,
-            player: @current_player, id: :ready, room: @new_room, title: "Another round" %>
+          <.live_component module={CardWeb.ReadyComponent} player={@current_player} id={:ready} room={@new_room}>
+            <:title>
+              <div class="bg-blue-300 -mt-8 w-32 h-4 rounded-xl transform skew-x-12 -rotate-6 translate-y-6 translate-x-20"></div>
+              <h2 class="transform text-xl font-serif">Another Round?</h2>
+            </:title>
+          </.live_component>
           <.back_to_menu />
         </.game_over_modal>
       <% end %>
