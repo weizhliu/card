@@ -47,7 +47,12 @@ defmodule CardWeb.GameLive.Invite do
     <div class="flex flex-col items-center h-screen">
       <.logo />
       <div class="h-40"></div>
-      <%= live_component CardWeb.ReadyComponent, player: @player, id: :ready, room: @room, title: "Room Status" %>
+      <.live_component module={CardWeb.ReadyComponent} player={@player} id={:ready} room={@room}>
+        <:title>
+          <div class="bg-blue-300 -mt-8 w-32 h-8 rounded-xl transform skew-x-12 -rotate-6 translate-y-6 translate-x-20"></div>
+          <h2 class="transform text-2xl font-serif">Room Status</h2>
+        </:title>
+      </.live_component>
       <%= if @player == :host && !@room.guest_ready do %>
         <.invite path={@invite_path}/>
       <% end %>

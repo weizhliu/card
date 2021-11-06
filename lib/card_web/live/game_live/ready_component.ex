@@ -10,7 +10,7 @@ defmodule CardWeb.ReadyComponent do
   def render(assigns) do
     ~H"""
     <div class="flex flex-col p-4 text-center mt-8">
-      <.title title={@title}/>
+      <%= render_slot(@title) %>
       <div class="flex justify-between mt-2 w-60">
         <.ready_status player={is_you("Host", @player)} ready={@room.host_ready}/>
         <.ready_status player={is_you("Guest", @player)} ready={@room.guest_ready}/>
@@ -32,29 +32,11 @@ defmodule CardWeb.ReadyComponent do
   defp is_you("Guest", :guest), do: "You"
   defp is_you(name, _player), do: name
 
-  def title(%{title: "Another round"} = assigns) do
-    ~H"""
-    <div class="bg-blue-300 -mt-8 w-32 h-4 rounded-xl transform skew-x-12 -rotate-6 translate-y-6 translate-x-20"></div>
-    <h2 class="transform text-xl font-serif"><%= @title %></h2>
-    """
-  end
-
-  def title(assigns) do
-    ~H"""
-    <div class="bg-blue-300 -mt-8 w-32 h-8 rounded-xl transform skew-x-12 -rotate-6 translate-y-6 translate-x-20"></div>
-    <h2 class="transform text-2xl font-serif"><%= @title %></h2>
-    """
-  end
-
   def ready_status(assigns) do
     ~H"""
     <div class="flex">
       <%= @player %>:
-      <%= if @ready do %>
-        <div class={"ml-8 bg-green-300 w-6 h-6 rounded-3xl transform -skew-x-3 rotate-12"}></div>
-      <% else %>
-        <div class={"ml-8 bg-red-300 w-6 h-6 rounded-3xl transform -skew-x-3 rotate-12"}></div>
-      <% end %>
+      <div class={"ml-8 #{if @ready, do: "bg-green-300", else: "bg-red-300"} w-6 h-6 rounded-3xl transform -skew-x-3 rotate-12"}></div>
     </div>
     """
   end
