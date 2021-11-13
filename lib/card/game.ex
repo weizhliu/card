@@ -1,8 +1,8 @@
 defmodule Card.Game do
-  initial_hand = [1, 1, 2, 2, 3, 3, 4, 5, 6, :reverse, :reverse]
+  alias Card.Player
 
-  defstruct host: %{desk: [], hand: initial_hand, wins: 0},
-            guest: %{desk: [], hand: initial_hand, wins: 0},
+  defstruct host: %Player{side: :host},
+            guest: %Player{side: :guest},
             turn: 1,
             round: 1,
             status: :start,
@@ -98,12 +98,9 @@ defmodule Card.Game do
     GenServer.stop(self())
   end
 
-  defp play_card_for(game, player, card) do
-    player_data = Map.get(game, player)
-
-    game
-    |> assign_to_player(player, :hand, player_data.hand -- [card])
-    |> assign_to_player(player, :desk, player_data.desk ++ [card])
+  defp play_card_for(game, player_side, card) do
+    player = Map.get(game, player_side)
+    Map.replace(game, player_side, Player.play_card(player, card))
   end
 
   defp end_turn(%{guest: guest, host: host} = game) do
@@ -124,29 +121,18 @@ defmodule Card.Game do
 
   defp add_wins(game), do: game
 
-  defp host_win_this_round?(%{round: round, host: host, guest: guest}) do
-    host_desk = Enum.slice(host.desk, (round - 1) * 3, 3)
-    guest_desk = Enum.slice(guest.desk, (round - 1) * 3, 3)
-    host_win = get_score(host_desk) > get_score(guest_desk)
+  defp host_win_this_round?(%{round: round, host: host, guest: guest} = game) do
+    host_score = Player.score_of_round(host, round)
+    guest_score = Player.score_of_round(guest, round)
+    host_win? = host_score > guest_score
 
-    if reverse?(host_desk ++ guest_desk) do
-      !host_win
-    else
-      host_win
-    end
+    if reverse?(game), do: not host_win?, else: host_win?
   end
 
-  defp reverse?(desk) do
-    desk
-    |> Enum.filter(&(&1 == :reverse))
-    |> length()
+  defp reverse?(%{round: round, host: host, guest: guest}) do
+    Player.reverse_count_of_round(host, round)
+    |> Kernel.+(Player.reverse_count_of_round(guest, round))
     |> rem(2) == 1
-  end
-
-  defp get_score(desk) do
-    desk
-    |> Enum.reject(&(&1 == :reverse))
-    |> Enum.sum()
   end
 
   defp end_round(%{turn: turn} = game) when turn > 3 do
