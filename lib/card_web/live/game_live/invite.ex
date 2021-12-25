@@ -67,7 +67,7 @@ defmodule CardWeb.GameLive.Invite do
       <label for="invite_url" class="transform text-2xl font-serif">Guest Link</label><br>
       <div class="flex border-2 rounded-xl bg-white justify-center items-center">
         <input id="invite_url" class="w-96 text-center text-gray-500" type="text" value={@path} readonly>
-        <button class="btn flex group -rotate-2" data-clipboard-target="#invite_url">
+        <button onclick="navigator.clipboard.writeText(document.querySelector('#invite_url').value)" class="btn flex group -rotate-2">
           <div class="bg-green-300 w-16 h-8 rounded-xl rounded-l-none transform -skew-x-2 -ml-16 translate-x-16 border-2 border-white group-hover:border-green-300"></div>
           <div class="transform text-lg w-16 text-center group-hover:underline">
             Copy
