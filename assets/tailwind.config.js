@@ -1,19 +1,19 @@
+// See the Tailwind configuration guide for advanced usage
+// https://tailwindcss.com/docs/configuration
 module.exports = {
-  mode: 'jit',
-  purge: [
+  content: [
     './js/**/*.js',
+    '../lib/*_web.ex',
     '../lib/*_web/**/*.*ex'
   ],
-  darkMode: false, // or 'media' or 'class'
   theme: {
     extend: {
-      spacing: {
-        '22': '5.5rem',
+      height: {
+        '22': '5.5rem'
       }
     },
   },
-  variants: {
-    extend: {},
-  },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms')
+  ]
 }
