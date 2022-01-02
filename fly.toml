@@ -7,7 +7,7 @@ kill_timeout = 5
 processes = []
 
 [env]
-  PHX_HOST = "card.fly.dev"
+  PHX_HOST = "card.weizheng.tw"
   PORT = "8080"
 
 [experimental]
