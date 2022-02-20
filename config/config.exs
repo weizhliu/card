@@ -28,7 +28,7 @@ config :swoosh, :api_client, false
 
 # Configure tailwindcss version
 config :tailwind,
-  version: "3.0.7",
+  version: "3.0.23",
   default: [
     args: ~w(
       --config=tailwind.config.js
