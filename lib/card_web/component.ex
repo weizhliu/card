@@ -13,7 +13,7 @@ defmodule CardWeb.Component do
 
   def card(%{name: :fold} = assigns) do
     ~H"""
-    <div class="border border-gray-200 rounded-lg p-0.5 w-14 h-22 m-1 shadow">
+    <div class="border border-gray-200 rounded-lg p-0.5 w-14 h-20 m-1 shadow">
       <div class="border-2 p-0.5 border-blue-500 rounded-md flex justify-center items-center w-full h-full">
         <div class="bg-blue-300 rounded w-full h-full">
         </div>
@@ -24,7 +24,7 @@ defmodule CardWeb.Component do
 
   def card(assigns) do
     ~H"""
-    <div class="border border-gray-200 rounded-lg p-0.5 w-14 h-22 m-1 shadow">
+    <div class="border border-gray-200 rounded-lg p-0.5 w-14 h-20 m-1 shadow">
       <div class="border-2 border-blue-500 rounded-md flex justify-center items-center w-full h-full">
         <div class="text-xl font-bold text-blue-500">
           <%= card_name(@name) %>
