@@ -74,7 +74,7 @@ defmodule CardWeb.GameLive.Invite do
           </div>
         </button>
       </div>
-      <p class="text-lg text-gray-600">To begin the game, send this link to your component.</p>
+      <p class="text-lg text-gray-600">To begin the game, send this link to your opponent.</p>
     </div>
     """
   end
