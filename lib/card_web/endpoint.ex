@@ -7,7 +7,8 @@ defmodule CardWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_card_key",
-    signing_salt: "y2tXOqEj"
+    signing_salt: "U7cGmqz/",
+    same_site: "Lax"
   ]
 
   socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
@@ -20,7 +21,7 @@ defmodule CardWeb.Endpoint do
     at: "/",
     from: :card,
     gzip: false,
-    only: ~w(assets fonts images favicon.ico robots.txt)
+    only: CardWeb.static_paths()
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
@@ -29,10 +30,6 @@ defmodule CardWeb.Endpoint do
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
   end
-
-  plug Phoenix.LiveDashboard.RequestLogger,
-    param_key: "request_logger",
-    cookie_key: "request_logger"
 
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]

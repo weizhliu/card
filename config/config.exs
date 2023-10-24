@@ -7,28 +7,33 @@
 # General application configuration
 import Config
 
+config :card,
+  generators: [timestamp_type: :utc_datetime]
+
 # Configures the endpoint
 config :card, CardWeb.Endpoint,
   url: [host: "localhost"],
-  render_errors: [view: CardWeb.ErrorView, accepts: ~w(html json), layout: false],
+  adapter: Bandit.PhoenixAdapter,
+  render_errors: [
+    formats: [html: CardWeb.ErrorHTML, json: CardWeb.ErrorJSON],
+    layout: false
+  ],
   pubsub_server: Card.PubSub,
-  live_view: [signing_salt: "3WWP7ejs"]
+  live_view: [signing_salt: "M2E9oTuw"]
 
-# Configures the mailer
-#
-# By default it uses the "Local" adapter which stores the emails
-# locally. You can see the emails in your browser, at "/dev/mailbox".
-#
-# For production it's recommended to configure a different adapter
-# at the `config/runtime.exs`.
-config :card, Card.Mailer, adapter: Swoosh.Adapters.Local
+# Configure esbuild (the version is required)
+config :esbuild,
+  version: "0.17.11",
+  default: [
+    args:
+      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+    cd: Path.expand("../assets", __DIR__),
+    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+  ]
 
-# Swoosh API client is needed for adapters other than SMTP.
-config :swoosh, :api_client, false
-
-# Configure tailwindcss version
+# Configure tailwind (the version is required)
 config :tailwind,
-  version: "3.0.23",
+  version: "3.3.2",
   default: [
     args: ~w(
       --config=tailwind.config.js
@@ -36,15 +41,6 @@ config :tailwind,
       --output=../priv/static/assets/app.css
     ),
     cd: Path.expand("../assets", __DIR__)
-  ]
-
-# Configure esbuild (the version is required)
-config :esbuild,
-  version: "0.12.18",
-  default: [
-    args: ~w(js/app.js --bundle --target=es2016 --outdir=../priv/static/assets),
-    cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
   ]
 
 # Configures Elixir's Logger

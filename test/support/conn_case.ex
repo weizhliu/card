@@ -19,15 +19,15 @@ defmodule CardWeb.ConnCase do
 
   using do
     quote do
+      # The default endpoint for testing
+      @endpoint CardWeb.Endpoint
+
+      use CardWeb, :verified_routes
+
       # Import conveniences for testing with connections
       import Plug.Conn
       import Phoenix.ConnTest
       import CardWeb.ConnCase
-
-      alias CardWeb.Router.Helpers, as: Routes
-
-      # The default endpoint for testing
-      @endpoint CardWeb.Endpoint
     end
   end
 

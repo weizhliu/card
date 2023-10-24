@@ -8,18 +8,16 @@ defmodule Card.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Start the Telemetry supervisor
       CardWeb.Telemetry,
-      # Start the PubSub system
+      {DNSCluster, query: Application.get_env(:card, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Card.PubSub},
-      # Start the Endpoint (http/https)
-      CardWeb.Endpoint,
       # Start a worker by calling: Card.Worker.start_link(arg)
-      # {Card.Worker, arg}
+      # {Card.Worker, arg},
+      # Start to serve requests, typically the last entry
+      CardWeb.Endpoint,
       Card.Dealer
     ]
 
-    # 建立 rooms 與 games table 給大家用
     :ets.new(:rooms, [:set, :public, :named_table])
     :ets.new(:games, [:set, :public, :named_table])
 
