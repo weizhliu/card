@@ -4,11 +4,21 @@ import Config
 # you can enable the server option below.
 config :card, CardWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
-  secret_key_base: "K/SJCgrVfNp2svFh1yRmPhk5FNRKljSy2gwNLmC8oePq/pRJ+CbE6pWys+qnumeA",
+  secret_key_base: "iAe4rwV+bCJleVrNXMyhaVMp0SH1AUeGW7LxVPCNlhzGcHLAsqDIyzjXxqyiDa6G",
   server: false
+
+# In test we don't send emails
+config :card, Card.Mailer, adapter: Swoosh.Adapters.Test
+
+# Disable swoosh api client as it is only required for production adapters
+config :swoosh, :api_client, false
 
 # Print only warnings and errors during test
 config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
+
+# Enable helpful, but potentially expensive runtime checks
+config :phoenix_live_view,
+  enable_expensive_runtime_checks: true
