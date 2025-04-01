@@ -42,6 +42,8 @@ defmodule CardWeb do
         formats: [:html, :json],
         layouts: [html: CardWeb.Layouts]
 
+      use Gettext, backend: CardWeb.Gettext
+
       import Plug.Conn
 
       unquote(verified_routes())
@@ -80,9 +82,12 @@ defmodule CardWeb do
 
   defp html_helpers do
     quote do
+      # Translation
+      use Gettext, backend: CardWeb.Gettext
+
       # HTML escaping functionality
       import Phoenix.HTML
-      # Core UI components and translation
+      # Core UI components
       import CardWeb.CoreComponents
 
       # Shortcut for generating JS commands
@@ -103,7 +108,7 @@ defmodule CardWeb do
   end
 
   @doc """
-  When used, dispatch to the appropriate controller/view/etc.
+  When used, dispatch to the appropriate controller/live_view/etc.
   """
   defmacro __using__(which) when is_atom(which) do
     apply(__MODULE__, which, [])

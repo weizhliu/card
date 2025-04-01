@@ -11,6 +11,8 @@ defmodule Card.Application do
       CardWeb.Telemetry,
       {DNSCluster, query: Application.get_env(:card, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Card.PubSub},
+      # Start the Finch HTTP client for sending emails
+      {Finch, name: Card.Finch},
       # Start a worker by calling: Card.Worker.start_link(arg)
       # {Card.Worker, arg},
       # Start to serve requests, typically the last entry

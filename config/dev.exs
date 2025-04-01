@@ -6,17 +6,17 @@ import Config
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
+# Binding to loopback ipv4 address prevents access from other machines.
 config :card, CardWeb.Endpoint,
-  # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}, port: 4000],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
-  secret_key_base: "RmXcjucYwSESRdf6jXAUj+u3RDUgSXh4PclSqjnZzurDkI5Q5BCc1UdAjiLluELl",
+  secret_key_base: "RUqprgOAHY0Zu+Zv3rEflSnUw6b0Z3Ukj4GiyvB+kBH3+++ayPr1Ni0Gd8kJKlH7",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:card, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:card, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -46,7 +46,8 @@ config :card, CardWeb.Endpoint,
 config :card, CardWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/gettext/.*(po)$",
       ~r"lib/card_web/(controllers|live|components)/.*(ex|heex)$"
     ]
   ]
@@ -64,5 +65,11 @@ config :phoenix, :stacktrace_depth, 20
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
 
-# Include HEEx debug annotations as HTML comments in rendered markup
-config :phoenix_live_view, :debug_heex_annotations, true
+config :phoenix_live_view,
+  # Include HEEx debug annotations as HTML comments in rendered markup
+  debug_heex_annotations: true,
+  # Enable helpful, but potentially expensive runtime checks
+  enable_expensive_runtime_checks: true
+
+# Disable swoosh api client as it is only required for production adapters.
+config :swoosh, :api_client, false
