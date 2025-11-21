@@ -30,20 +30,24 @@ defmodule CardWeb.CoreComponents do
   end
 
   def card(%{name: :fold} = assigns) do
+    assigns = assign_new(assigns, :faded, fn -> false end)
+
     ~H"""
     <div class="border border-gray-200 rounded-lg p-0.5 w-14 h-20 m-1 shadow">
-      <div class="border-2 p-0.5 border-blue-500 rounded-md flex justify-center items-center w-full h-full">
-        <div class="bg-blue-300 rounded w-full h-full"></div>
+      <div class={"border-2 p-0.5 rounded-md flex justify-center items-center w-full h-full #{if @faded, do: "border-gray-400", else: "border-blue-500"}"}>
+        <div class={"rounded w-full h-full #{if @faded, do: "bg-gray-300", else: "bg-blue-300"}"}></div>
       </div>
     </div>
     """
   end
 
   def card(assigns) do
+    assigns = assign_new(assigns, :faded, fn -> false end)
+
     ~H"""
     <div class="border border-gray-200 rounded-lg p-0.5 w-14 h-20 m-1 shadow">
-      <div class="border-2 border-blue-500 rounded-md flex justify-center items-center w-full h-full">
-        <div class="text-xl font-bold text-blue-500">
+      <div class={"border-2 rounded-md flex justify-center items-center w-full h-full #{if @faded, do: "border-gray-400", else: "border-blue-500"}"}>
+        <div class={"text-xl font-bold #{if @faded, do: "text-gray-400", else: "text-blue-500"}"}>
           {card_name(@name)}
         </div>
       </div>

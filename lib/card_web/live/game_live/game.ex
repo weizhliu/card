@@ -13,16 +13,21 @@ defmodule CardWeb.GameLive.Game do
     if connected?(socket), do: Card.Game.subscribe(id)
     if connected?(socket), do: Card.Room.subscribe(game.new_room.id)
 
-    {:ok,
-     assign(socket, %{
-       pid: pid,
-       id: id,
-       game: maybe_fold_last(game, current_player, opponent),
-       current_player: current_player,
-       opponent: opponent,
-       modal_on: true,
-       new_room: game.new_room
-     })}
+    socket =
+      socket
+      |> assign(%{
+        pid: pid,
+        id: id,
+        game: maybe_fold_last(game, current_player, opponent),
+        current_player: current_player,
+        opponent: opponent,
+        modal_on: true,
+        new_room: game.new_room,
+        countdown: nil
+      })
+      |> schedule_countdown_tick()
+
+    {:ok, socket}
   end
 
   defp maybe_fold_last(game, current_player, opponent) do
@@ -85,16 +90,59 @@ defmodule CardWeb.GameLive.Game do
     {:noreply, assign(socket, new_room: new_room)}
   end
 
+  def handle_info(:countdown_tick, socket) do
+    socket = socket |> update_countdown() |> schedule_countdown_tick()
+    {:noreply, socket}
+  end
+
+  defp schedule_countdown_tick(socket) do
+    if connected?(socket) do
+      Process.send_after(self(), :countdown_tick, 1000)
+    end
+
+    socket
+  end
+
+  defp update_countdown(%{assigns: %{game: game, current_player: current_player}} = socket) do
+    # Check if current player needs to play (hasn't played this turn yet)
+    player_desk = Map.get(game, current_player).desk
+    opponent_desk = Map.get(game, socket.assigns.opponent).desk
+
+    needs_to_play =
+      game.status == :start and length(player_desk) <= length(opponent_desk)
+
+    countdown =
+      if needs_to_play and game.turn_started_at do
+        elapsed = System.monotonic_time(:millisecond) - game.turn_started_at
+        remaining = div(Card.Game.turn_timeout() - elapsed, 1000)
+
+        if remaining <= 10 and remaining >= 0 do
+          remaining
+        else
+          nil
+        end
+      else
+        nil
+      end
+
+    assign(socket, :countdown, countdown)
+  end
+
   def render(assigns) do
     ~H"""
     <div class="flex flex-col items-center h-screen">
       <.logo />
       <.status game={@game} opponent={@opponent} current_player={@current_player} />
-      <div class="border-t border-b m-4">
-        <.desk player={Map.get(@game, @opponent)} />
-        <.desk player={Map.get(@game, @current_player)} />
+      <div class="flex items-center justify-center gap-4 m-4">
+        <.all_rounds
+          opponent={Map.get(@game, @opponent)}
+          current_player={Map.get(@game, @current_player)}
+          current_round={@game.round}
+        />
       </div>
-      <.notice game={@game} modal_on={@modal_on} />
+      <%= if @countdown do %>
+        <div class="text-red-500 text-xl font-bold mb-2"><%= @countdown %></div>
+      <% end %>
       <.hand player={Map.get(@game, @current_player)} />
       <%= if (@game.status != :start) && @modal_on do %>
         <.game_over_modal>
@@ -152,13 +200,136 @@ defmodule CardWeb.GameLive.Game do
     """
   end
 
-  def desk(assigns) do
+  def all_rounds(assigns) do
+    # Build data for all 3 rounds
+    rounds_data =
+      Enum.map(1..3, fn round_num ->
+        start_idx = (round_num - 1) * 3
+        is_past = round_num < assigns.current_round
+        is_current = round_num == assigns.current_round
+        opponent_cards = Enum.slice(assigns.opponent.desk, start_idx, 3)
+        player_cards = Enum.slice(assigns.current_player.desk, start_idx, 3)
+        has_any_cards = length(opponent_cards) > 0 or length(player_cards) > 0
+        needs_pick_prompt = is_current and length(player_cards) == 0
+
+        # Calculate scores for past rounds
+        {player_score, opponent_score, is_reversed, player_won, result_text} =
+          if is_past do
+            player_rev = Card.Player.reverse_count_of_round(assigns.current_player, round_num)
+            opponent_rev = Card.Player.reverse_count_of_round(assigns.opponent, round_num)
+            total_rev = player_rev + opponent_rev
+            is_reversed = rem(total_rev, 2) == 1
+
+            player_score = Card.Player.score_of_round(assigns.current_player, round_num)
+            opponent_score = Card.Player.score_of_round(assigns.opponent, round_num)
+
+            # Game rule: host wins only if strictly greater, ties go to guest
+            # We need to determine if current_player won based on their side
+            {host_score, guest_score} =
+              if assigns.current_player.side == :host do
+                {player_score, opponent_score}
+              else
+                {opponent_score, player_score}
+              end
+
+            is_tie = host_score == guest_score
+            host_wins = host_score > guest_score
+            host_wins = if is_reversed, do: not host_wins, else: host_wins
+
+            player_won =
+              if assigns.current_player.side == :host do
+                host_wins
+              else
+                not host_wins
+              end
+
+            # Determine result text
+            result_text =
+              cond do
+                is_tie and is_reversed -> "reversed tie, host win"
+                is_tie -> "tie, guest win"
+                is_reversed -> "reversed, smaller win"
+                true -> "larger win"
+              end
+
+            {player_score, opponent_score, is_reversed, player_won, result_text}
+          else
+            {nil, nil, false, false, nil}
+          end
+
+        %{
+          round: round_num,
+          opponent_cards: opponent_cards,
+          player_cards: player_cards,
+          is_past: is_past,
+          is_current: is_current,
+          is_future: not is_past and not is_current,
+          has_any_cards: has_any_cards,
+          needs_pick_prompt: needs_pick_prompt,
+          show_round: is_current or is_past,
+          player_score: player_score,
+          opponent_score: opponent_score,
+          is_reversed: is_reversed,
+          player_won: player_won,
+          result_text: result_text
+        }
+      end)
+
+    assigns = assign(assigns, :rounds_data, rounds_data)
+
     ~H"""
-    <div class="flex w-full justify-center items-center h-32">
-      <%= for {card, i} <- Enum.with_index(@player.desk, 1) do %>
-        <%= if Enum.member?([4,7], i) do %>
-          <div class="w-1 h-20 bg-gray-200 mx-2 rounded"></div>
+    <div class="flex items-start gap-4">
+      <%= for {round_data, idx} <- Enum.with_index(@rounds_data) do %>
+        <%= if round_data.show_round do %>
+          <%= if idx > 0 && Enum.at(@rounds_data, idx - 1).show_round do %>
+            <div class="h-56 w-px bg-gray-200 self-center"></div>
+          <% end %>
+          <div class={[
+            "flex flex-col items-center w-48 relative",
+            round_data.is_past && "opacity-40"
+          ]}>
+            <div class="flex w-full justify-center items-center h-28 gap-1">
+              <%= for card <- round_data.opponent_cards do %>
+                <.card name={card} faded={round_data.is_past} />
+              <% end %>
+            </div>
+            <%= if round_data.is_past do %>
+              <div class="absolute top-1/2 -translate-y-1/2 text-base flex flex-col items-center leading-tight">
+                <span class={if round_data.player_won, do: "text-red-500", else: "text-green-500 font-bold"}><%= round_data.opponent_score %></span>
+                <span class="text-xs text-gray-400"><%= round_data.result_text %></span>
+                <span class={if round_data.player_won, do: "text-green-500 font-bold", else: "text-red-500"}><%= round_data.player_score %></span>
+              </div>
+            <% end %>
+            <div class="flex w-full justify-center items-center h-28 gap-1">
+              <%= if round_data.needs_pick_prompt do %>
+                <div class="text-gray-400 text-center">
+                  <div class="text-sm font-medium">Round <%= round_data.round %></div>
+                  <div class="text-xs">Pick a card</div>
+                </div>
+              <% else %>
+                <%= for card <- round_data.player_cards do %>
+                  <.card name={card} faded={round_data.is_past} />
+                <% end %>
+              <% end %>
+            </div>
+          </div>
         <% end %>
+      <% end %>
+    </div>
+    """
+  end
+
+  def desk(assigns) do
+    # Only show cards from the current round (last 0-3 cards based on turn)
+    # Each round has 3 turns, so cards for round N start at index (N-1)*3
+    start_index = (assigns.round - 1) * 3
+    current_round_cards = Enum.drop(assigns.player.desk, start_index)
+
+    assigns = assign(assigns, :current_round_cards, current_round_cards)
+
+    ~H"""
+    <div class="flex w-full justify-center items-center h-32 gap-2">
+      <%= for card <- @current_round_cards do %>
         <.card name={card} />
       <% end %>
     </div>
@@ -182,46 +353,74 @@ defmodule CardWeb.GameLive.Game do
   end
 
   def status(assigns) do
+    my_wins = Map.get(assigns.game, assigns.current_player).wins
+    opponent_wins = Map.get(assigns.game, assigns.opponent).wins
+    current_round = assigns.game.round
+
+    assigns =
+      assigns
+      |> assign(:my_wins, my_wins)
+      |> assign(:opponent_wins, opponent_wins)
+      |> assign(:current_round, current_round)
+
     ~H"""
-    <div class="flex flex-col items-center">
-      <.wins game={@game} opponent={@opponent} current_player={@current_player} />
-      <.game_round round={@game.round} />
+    <div class="flex items-center gap-3 m-4">
+      <%= for round <- 1..3 do %>
+        <.round_dot round={round} current_round={@current_round} wins={@my_wins} opponent_wins={@opponent_wins} />
+      <% end %>
     </div>
     """
   end
 
-  def game_round(assigns) do
+  def round_dot(assigns) do
+    # Determine the dot color based on round results
+    # - Green: player won this round
+    # - Red: player lost this round
+    # - Gray with ring: current round (in progress)
+    # - Gray: future round (not played yet)
+
+    {color_class, ring_class} =
+      cond do
+        # Past rounds - check if won or lost
+        assigns.round < assigns.current_round ->
+          if assigns.wins >= assigns.round do
+            {"bg-green-300", ""}
+          else
+            {"bg-red-300", ""}
+          end
+
+        # Current round - in progress
+        assigns.round == assigns.current_round ->
+          {"bg-gray-300", "ring-2 ring-blue-300 ring-offset-2"}
+
+        # Future rounds - not played yet
+        true ->
+          {"bg-gray-300", ""}
+      end
+
+    # Different twist transforms for each round dot
+    twist_class =
+      case assigns.round do
+        1 -> "transform skew-x-6 -rotate-6"
+        2 -> "transform -skew-x-3 rotate-12"
+        3 -> "transform skew-x-12 -rotate-3"
+      end
+
+    assigns =
+      assigns
+      |> assign(:color_class, color_class)
+      |> assign(:ring_class, ring_class)
+      |> assign(:twist_class, twist_class)
+
     ~H"""
-    <div class="mt-2 text-gray-600 flex m-4">
-      <div class="bg-blue-300 w-9 h-2 rounded-xl transform -skew-x-12 rotate-6 translate-x-10 translate-y-4">
+    <div class="relative">
+      <%= if @ring_class != "" do %>
+        <div class="absolute z-10 w-6 h-6 rounded-xl border-4 border-blue-500 -top-1 -left-0.5 transform -skew-x-6 rotate-6">
+        </div>
+      <% end %>
+      <div class={"w-5 h-5 rounded-xl #{@color_class} #{@twist_class}"}>
       </div>
-      <h2 class="transform mr-8 text-xl font-serif block">Round:</h2>
-      <div class="ml-2 text-lg"><%= @round %></div>
     </div>
-    """
-  end
-
-  def wins(assigns) do
-    ~H"""
-    <div class="flex h-6 items-center justify-between text-gray-600 m-4">
-      <div class="bg-blue-300 w-4 h-3 rounded-xl transform skew-x-12 -rotate-12 translate-x-8"></div>
-      <h2 class="transform mr-8 text-xl font-serif">Wins:</h2>
-      <.player_wins player="You" wins={Map.get(@game, @current_player).wins} />
-      <div class="ml-8"></div>
-      <.player_wins player="Opponent" wins={Map.get(@game, @opponent).wins} />
-    </div>
-    """
-  end
-
-  def player_wins(assigns) do
-    ~H"""
-    <h3 class="block"><%= @player %>:</h3>
-    <%= for x <- 0..(@wins), x > 0 do %>
-      <div class="ml-4 bg-green-300 w-4 h-4 rounded-3xl transform -skew-x-3 rotate-12"></div>
-    <% end %>
-    <%= for x <- 0..(2 - @wins), x > 0 do %>
-      <div class="ml-4 bg-gray-300 w-4 h-4 rounded-3xl transform -skew-x-3 rotate-12"></div>
-    <% end %>
     """
   end
 
