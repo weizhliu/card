@@ -1,5 +1,6 @@
 defmodule Card.RoomTest do
-  use ExUnit.Case, async: false  # Not async because we use shared ETS tables
+  # Not async because we use shared ETS tables
+  use ExUnit.Case, async: false
   alias Card.Room
 
   setup do

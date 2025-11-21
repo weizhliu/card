@@ -86,7 +86,12 @@ defmodule Card.GameTest do
     test "host cannot play if already ahead of guest" do
       # Create a game where host has played more cards
       host = %Player{side: :host, desk: [1], hand: [1, 2, 2, 3, 3, 4, 5, 6, :reverse, :reverse]}
-      guest = %Player{side: :guest, desk: [], hand: [1, 1, 2, 2, 3, 3, 4, 5, 6, :reverse, :reverse]}
+
+      guest = %Player{
+        side: :guest,
+        desk: [],
+        hand: [1, 1, 2, 2, 3, 3, 4, 5, 6, :reverse, :reverse]
+      }
 
       game = new_game(%{host: host, guest: guest})
 
@@ -111,7 +116,6 @@ defmodule Card.GameTest do
       # Host: 4+5+6=15, Guest: 1+2+3=6
       host = %Player{side: :host, desk: [4, 5, 6], hand: [], wins: 0}
       guest = %Player{side: :guest, desk: [1, 2, 3], hand: [], wins: 0}
-      game = new_game(%{host: host, guest: guest, turn: 4, round: 1})
 
       assert Player.score_of_round(host, 1) == 15
       assert Player.score_of_round(guest, 1) == 6
@@ -121,7 +125,6 @@ defmodule Card.GameTest do
       # Host: 1+2+3=6, Guest: 4+5+6=15
       host = %Player{side: :host, desk: [1, 2, 3], hand: [], wins: 0}
       guest = %Player{side: :guest, desk: [4, 5, 6], hand: [], wins: 0}
-      game = new_game(%{host: host, guest: guest, turn: 4, round: 1})
 
       assert Player.score_of_round(host, 1) == 6
       assert Player.score_of_round(guest, 1) == 15
@@ -148,12 +151,15 @@ defmodule Card.GameTest do
 
       host_score = Player.score_of_round(host, 1)
       guest_score = Player.score_of_round(guest, 1)
-      total_reverses = Player.reverse_count_of_round(host, 1) + Player.reverse_count_of_round(guest, 1)
+
+      total_reverses =
+        Player.reverse_count_of_round(host, 1) + Player.reverse_count_of_round(guest, 1)
 
       assert host_score == 11
       assert guest_score == 6
       assert total_reverses == 1
-      assert rem(total_reverses, 2) == 1  # Odd = reverses outcome
+      # Odd = reverses outcome
+      assert rem(total_reverses, 2) == 1
     end
 
     test "two reverse cards cancel out" do
@@ -161,10 +167,12 @@ defmodule Card.GameTest do
       host = %Player{side: :host, desk: [:reverse, 5, 6], hand: [], wins: 0}
       guest = %Player{side: :guest, desk: [:reverse, 2, 3], hand: [], wins: 0}
 
-      total_reverses = Player.reverse_count_of_round(host, 1) + Player.reverse_count_of_round(guest, 1)
+      total_reverses =
+        Player.reverse_count_of_round(host, 1) + Player.reverse_count_of_round(guest, 1)
 
       assert total_reverses == 2
-      assert rem(total_reverses, 2) == 0  # Even = no reverse
+      # Even = no reverse
+      assert rem(total_reverses, 2) == 0
     end
 
     test "three reverse cards flip winner" do
@@ -172,37 +180,37 @@ defmodule Card.GameTest do
       host = %Player{side: :host, desk: [:reverse, :reverse, 6], hand: [], wins: 0}
       guest = %Player{side: :guest, desk: [:reverse, 2, 3], hand: [], wins: 0}
 
-      total_reverses = Player.reverse_count_of_round(host, 1) + Player.reverse_count_of_round(guest, 1)
+      total_reverses =
+        Player.reverse_count_of_round(host, 1) + Player.reverse_count_of_round(guest, 1)
 
       assert total_reverses == 3
-      assert rem(total_reverses, 2) == 1  # Odd = reverses outcome
+      # Odd = reverses outcome
+      assert rem(total_reverses, 2) == 1
     end
 
     test "four reverse cards cancel out" do
       host = %Player{side: :host, desk: [:reverse, :reverse, 6], hand: [], wins: 0}
       guest = %Player{side: :guest, desk: [:reverse, :reverse, 3], hand: [], wins: 0}
 
-      total_reverses = Player.reverse_count_of_round(host, 1) + Player.reverse_count_of_round(guest, 1)
+      total_reverses =
+        Player.reverse_count_of_round(host, 1) + Player.reverse_count_of_round(guest, 1)
 
       assert total_reverses == 4
-      assert rem(total_reverses, 2) == 0  # Even = no reverse
+      # Even = no reverse
+      assert rem(total_reverses, 2) == 0
     end
   end
 
   describe "game end conditions" do
     test "game ends when host reaches 2 wins" do
       host = %Player{side: :host, wins: 2}
-      guest = %Player{side: :guest, wins: 0}
-      game = new_game(%{host: host, guest: guest, status: :start})
 
       # Simulate end_game check
       assert host.wins == 2
     end
 
     test "game ends when guest reaches 2 wins" do
-      host = %Player{side: :host, wins: 0}
       guest = %Player{side: :guest, wins: 2}
-      game = new_game(%{host: host, guest: guest, status: :start})
 
       # Simulate end_game check
       assert guest.wins == 2
@@ -236,7 +244,8 @@ defmodule Card.GameTest do
 
       # After end_round, turn should be 1 and round should be 2
       # (We're testing the expected state transformation)
-      assert game.turn == 4  # Before end_round
+      # Before end_round
+      assert game.turn == 4
       # After end_round would be: turn: 1, round: 2
     end
   end
@@ -250,6 +259,7 @@ defmodule Card.GameTest do
         hand: [1, 1, 2, 2, 3, 3, :reverse, :reverse],
         wins: 0
       }
+
       guest = %Player{
         side: :guest,
         desk: [1, 2, 3],
@@ -274,6 +284,7 @@ defmodule Card.GameTest do
         hand: [1, 1, 2, 2, 3, 3, 6, :reverse],
         wins: 0
       }
+
       guest = %Player{
         side: :guest,
         desk: [1, 2, 3],
@@ -289,9 +300,11 @@ defmodule Card.GameTest do
 
       assert host_score == 9
       assert guest_score == 6
-      assert host_score > guest_score  # Host would win without reverse
+      # Host would win without reverse
+      assert host_score > guest_score
       assert total_reverses == 1
-      assert rem(total_reverses, 2) == 1  # Odd = outcome reversed, so guest wins
+      # Odd = outcome reversed, so guest wins
+      assert rem(total_reverses, 2) == 1
     end
   end
 
