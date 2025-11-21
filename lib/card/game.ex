@@ -1,13 +1,16 @@
 defmodule Card.Game do
   alias Card.Player
 
+  @turn_timeout 50_000
+
   defstruct host: %Player{side: :host},
             guest: %Player{side: :guest},
             turn: 1,
             round: 1,
             status: :start,
             id: nil,
-            new_room: nil
+            new_room: nil,
+            turn_started_at: nil
 
   use GenServer
 
@@ -71,12 +74,15 @@ defmodule Card.Game do
 
   defp start_turn_timer(game, current_turn \\ 0) do
     if game.status == :start && current_turn != game.turn do
-      Process.send_after(self(), {:times_up, :host, game.round, game.turn}, 50000)
-      Process.send_after(self(), {:times_up, :guest, game.round, game.turn}, 50000)
+      Process.send_after(self(), {:times_up, :host, game.round, game.turn}, @turn_timeout)
+      Process.send_after(self(), {:times_up, :guest, game.round, game.turn}, @turn_timeout)
+      %{game | turn_started_at: System.monotonic_time(:millisecond)}
+    else
+      game
     end
-
-    game
   end
+
+  def turn_timeout, do: @turn_timeout
 
   def handle_info(
         {:times_up, player, round, turn},
