@@ -29,11 +29,72 @@ defmodule CardWeb.CoreComponents do
     """
   end
 
+  @doc """
+  Renders a playing card with enhanced visual effects.
+
+  ## Assigns
+    * `:name` - The card value (:fold for face-down, :reverse for reverse card, or a number)
+    * `:context` - Optional context (:hand, :desk) for different styling. Defaults to nil.
+    * `:animate` - Optional boolean to trigger flip animation. Defaults to false.
+  """
+  attr :name, :any, required: true
+  attr :context, :atom, default: nil
+  attr :animate, :boolean, default: false
+
   def card(%{name: :fold} = assigns) do
     ~H"""
-    <div class="border border-gray-200 rounded-lg p-0.5 w-14 h-20 m-1 shadow">
-      <div class="border-2 p-0.5 border-blue-500 rounded-md flex justify-center items-center w-full h-full">
-        <div class="bg-blue-300 rounded w-full h-full"></div>
+    <div class={[
+      "card-container",
+      @context == :hand && "hand-card",
+      @context == :desk && "desk-card"
+    ]}>
+      <div class={[
+        "game-card border border-gray-200 rounded-lg p-0.5 w-14 h-20 m-1",
+        "transition-all duration-300"
+      ]}>
+        <div class="border-2 p-0.5 border-blue-500 rounded-md flex justify-center items-center w-full h-full overflow-hidden">
+          <div class="card-back rounded w-full h-full relative">
+            <!-- Card back pattern overlay -->
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-400/30 to-transparent rounded"></div>
+            <!-- Center emblem -->
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="w-6 h-6 rounded-full bg-blue-600/20 border border-blue-400/40 flex items-center justify-center">
+                <div class="w-3 h-3 rounded-full bg-blue-500/30"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  def card(%{name: :reverse} = assigns) do
+    ~H"""
+    <div class={[
+      "card-container",
+      @context == :hand && "hand-card",
+      @context == :desk && "desk-card"
+    ]}>
+      <div
+        class={[
+          "game-card border border-gray-200 rounded-lg p-0.5 w-14 h-20 m-1",
+          "transition-all duration-300",
+          @animate && "card-flip"
+        ]}
+        data-flip={to_string(@animate)}
+      >
+        <div class="border-2 border-purple-500 rounded-md flex flex-col justify-center items-center w-full h-full bg-gradient-to-br from-purple-50 to-indigo-50">
+          <!-- Reverse icon -->
+          <div class="relative">
+            <svg class="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
+          </div>
+          <div class="card-special text-xs font-bold mt-0.5">
+            REV
+          </div>
+        </div>
       </div>
     </div>
     """
@@ -41,10 +102,32 @@ defmodule CardWeb.CoreComponents do
 
   def card(assigns) do
     ~H"""
-    <div class="border border-gray-200 rounded-lg p-0.5 w-14 h-20 m-1 shadow">
-      <div class="border-2 border-blue-500 rounded-md flex justify-center items-center w-full h-full">
-        <div class="text-xl font-bold text-blue-500">
-          {card_name(@name)}
+    <div class={[
+      "card-container",
+      @context == :hand && "hand-card",
+      @context == :desk && "desk-card"
+    ]}>
+      <div
+        class={[
+          "game-card border border-gray-200 rounded-lg p-0.5 w-14 h-20 m-1",
+          "transition-all duration-300",
+          @animate && "card-flip"
+        ]}
+        data-flip={to_string(@animate)}
+      >
+        <div class="border-2 border-blue-500 rounded-md flex flex-col justify-between items-center w-full h-full py-1 bg-gradient-to-br from-white to-blue-50">
+          <!-- Top corner number -->
+          <div class="self-start ml-1 text-xs font-semibold text-blue-400">
+            {@name}
+          </div>
+          <!-- Center number -->
+          <div class="card-number text-2xl font-bold">
+            {@name}
+          </div>
+          <!-- Bottom corner number (inverted) -->
+          <div class="self-end mr-1 text-xs font-semibold text-blue-400 rotate-180">
+            {@name}
+          </div>
         </div>
       </div>
     </div>

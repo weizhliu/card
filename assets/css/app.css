@@ -3,3 +3,416 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+
+/* ===================================
+   CARD GAME ENHANCED EFFECTS
+   =================================== */
+
+/* Card Base Styles with 3D Perspective */
+.card-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+/* Card with realistic shadow and depth */
+.game-card {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Card shine/gloss effect */
+.game-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.1) 40%,
+    transparent 60%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Hand card interactive hover effect */
+.hand-card {
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.2s ease,
+              filter 0.2s ease;
+}
+
+.hand-card:hover {
+  transform: translateY(-12px) scale(1.05) rotateX(-5deg);
+  box-shadow:
+    0 12px 20px rgba(59, 130, 246, 0.25),
+    0 8px 16px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  z-index: 50;
+}
+
+.hand-card:active {
+  transform: translateY(-4px) scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Card back (fold) with pattern */
+.card-back {
+  background:
+    linear-gradient(45deg, #60a5fa 25%, transparent 25%),
+    linear-gradient(-45deg, #60a5fa 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #3b82f6 75%),
+    linear-gradient(-45deg, transparent 75%, #3b82f6 75%),
+    linear-gradient(to bottom, #93c5fd, #60a5fa);
+  background-size: 8px 8px, 8px 8px, 8px 8px, 8px 8px, 100% 100%;
+  background-position: 0 0, 4px 0, 4px -4px, 0px 4px, 0 0;
+}
+
+/* Desk card (played card) subtle animation */
+.desk-card {
+  animation: cardPlace 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cardPlace {
+  0% {
+    transform: translateY(-30px) scale(0.8) rotateX(20deg);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(5px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotateX(0);
+    opacity: 1;
+  }
+}
+
+/* Card flip animation */
+.card-flip {
+  animation: flipCard 0.6s ease-in-out;
+}
+
+@keyframes flipCard {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(90deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+/* ===================================
+   ROUND TRANSITION EFFECTS
+   =================================== */
+
+/* Round indicator pulse */
+.round-indicator {
+  position: relative;
+}
+
+.round-indicator::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  opacity: 0;
+  z-index: -1;
+  animation: none;
+}
+
+.round-indicator.new-round::after {
+  animation: roundPulse 1.5s ease-out;
+}
+
+@keyframes roundPulse {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+/* Round change flash effect */
+.round-flash {
+  animation: roundFlash 0.8s ease-out;
+}
+
+@keyframes roundFlash {
+  0% {
+    background-color: rgba(59, 130, 246, 0.3);
+    transform: scale(1.05);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+/* Turn indicator bar */
+.turn-indicator {
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa, #93c5fd);
+  border-radius: 2px;
+  transition: width 0.5s ease-out;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+/* ===================================
+   WIN/LOSS INDICATORS
+   =================================== */
+
+/* Win marker with glow */
+.win-marker {
+  position: relative;
+  background: linear-gradient(145deg, #86efac, #22c55e);
+  box-shadow:
+    0 2px 4px rgba(34, 197, 94, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.win-marker::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: #22c55e;
+  opacity: 0;
+  filter: blur(4px);
+  z-index: -1;
+  animation: winGlow 2s ease-in-out infinite;
+}
+
+@keyframes winGlow {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Pending win marker */
+.pending-marker {
+  background: linear-gradient(145deg, #e5e7eb, #d1d5db);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* ===================================
+   DESK DIVIDERS
+   =================================== */
+
+.round-divider {
+  position: relative;
+  background: linear-gradient(to bottom, #e5e7eb, #d1d5db, #e5e7eb);
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.5),
+    inset -1px 0 0 rgba(0, 0, 0, 0.1);
+}
+
+.round-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  background: #9ca3af;
+  border-radius: 50%;
+}
+
+/* ===================================
+   GAME RESULT CELEBRATIONS
+   =================================== */
+
+/* Win celebration confetti-like effect */
+.celebrate-win {
+  position: relative;
+  overflow: visible;
+}
+
+.celebrate-win::before,
+.celebrate-win::after {
+  content: '✨';
+  position: absolute;
+  font-size: 1.5rem;
+  animation: sparkle 1s ease-out infinite;
+}
+
+.celebrate-win::before {
+  top: -10px;
+  left: -10px;
+  animation-delay: 0s;
+}
+
+.celebrate-win::after {
+  top: -10px;
+  right: -10px;
+  animation-delay: 0.5s;
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.5) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) translateY(-10px);
+  }
+}
+
+/* ===================================
+   MODAL ENHANCEMENTS
+   =================================== */
+
+.game-modal-backdrop {
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.game-modal-content {
+  animation: modalSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalSlide {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ===================================
+   NOTICE AREA ANIMATIONS
+   =================================== */
+
+.notice-bounce {
+  animation: noticeBounce 2s ease-in-out infinite;
+}
+
+@keyframes noticeBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Pulsing arrow for pick card notice */
+.pick-card-notice {
+  position: relative;
+}
+
+.pick-card-notice::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #3b82f6;
+  animation: arrowPulse 1s ease-in-out infinite;
+}
+
+@keyframes arrowPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(4px);
+  }
+}
+
+/* ===================================
+   CARD NUMBER STYLING
+   =================================== */
+
+.card-number {
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8),
+    0 -1px 0 rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to bottom, #3b82f6, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Special card (Reverse) styling */
+.card-special {
+  font-size: 0.875rem;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===================================
+   RESPONSIVE CARD SCALING
+   =================================== */
+
+@media (min-width: 640px) {
+  .hand-card:hover {
+    transform: translateY(-16px) scale(1.08) rotateX(-5deg);
+  }
+}
+
+/* ===================================
+   ACCESSIBILITY - REDUCED MOTION
+   =================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .game-card,
+  .hand-card,
+  .desk-card,
+  .card-flip,
+  .round-indicator::after,
+  .win-marker::after,
+  .celebrate-win::before,
+  .celebrate-win::after,
+  .notice-bounce,
+  .pick-card-notice::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .hand-card:hover {
+    transform: translateY(-4px);
+  }
+}
